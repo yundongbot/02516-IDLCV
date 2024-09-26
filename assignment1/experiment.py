@@ -14,7 +14,7 @@ class Experiment:
     self.optimizer = optimizer
     self.num_epochs = num_epochs
     self.batch_size = batch_size
-    self.id = f'{self.model.__class__.__name__}{datetime.now().strftime("-%Y-%m-%d_%H-%M-%S-")}{random.randint(0, 1000)}'
+    self.id = f'{self.model.name}{datetime.now().strftime("-%m%d%H%M%S")}{random.randint(0, 1000)}'
 
   def run(self, data_loader):
     """Run an experiment and then save the results to a csv file and a plot

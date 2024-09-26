@@ -1,22 +1,23 @@
 # Experiment Configuration
 
-# Model settings
-model:
-  name: VGG16  # Options: VGG16, Resnet18
-  num_classes: 2
+  # Model settings
+- model:
+    model: VGG16  # Options: VGG16, Resnet18
+    name: VGG16_64_Adam_1e-3_1_8
+    num_classes: 2
 
-# Optimizer settings
-optimizer:
-  name: Adam  # Options: Adam, SGD
-  lr: 1e-3
+  # Optimizer settings
+  optimizer:
+    name: Adam  # Options: Adam, SGD
+    lr: 1e-3
 
-# Training settings
-training:
-  epochs: 1
-  batch_size: 8
+  # Training settings
+  training:
+    epochs: 1
+    batch_size: 8
 
-# Data settings
-data:
-  image_size: 64
-  augment: true
-  validation_split: 0
+  # Data settings
+  data:
+    image_size: 64
+    augment: true
+    validation_split: 0

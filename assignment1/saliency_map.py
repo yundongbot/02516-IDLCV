@@ -57,7 +57,7 @@ def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.1):
     noise_level = sigma / (imgs.max() - imgs.min())
 
     # normalize saliency map
-    saliency = (saliency - saliency.min()) / (saliency.max() - saliency.min())
+    saliency = (saliency - saliency.min()) / (saliency.max() - saliency.min() + 1e-8)
 
     return saliency, noise_level
 
@@ -97,13 +97,13 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
 
     integrated_grads = imgs.grad.data.mean(dim=0, keepdim=True)
     integrated_grads = (image - baseline) * integrated_grads
-    integrated_grads = integrated_grads.squeeze().detach().cpu().numpy()
+    integrated_grads = integrated_grads.abs().squeeze().detach().cpu().numpy()
 
     if integrated_grads.ndim == 3:
         integrated_grads = np.mean(integrated_grads, axis=0)
 
     # normalize saliency map
-    integrated_grads = (integrated_grads - integrated_grads.min()) / (integrated_grads.max() - integrated_grads.min())
+    integrated_grads = (integrated_grads - integrated_grads.min()) / (integrated_grads.max() - integrated_grads.min() + 1e-8)
 
     return integrated_grads
 
@@ -129,7 +129,7 @@ def plot_saliency_map(img, smooth_grad, integrated_gradients,path = None):
 
 def main():
     model = VGG16(num_classes=2)
-    model.load_state_dict(torch.load('./assignment1/results/VGG16-2024-09-26_23-02-17-936.pth', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load('./assignment1/results/model.pth', map_location=torch.device('cpu')))
     dl = HotdogDataLoader(64, False, 64, 0.2)
     train_loader, _, _, _, _, _ = dl.data_for_exp()
     images, labels = next(iter(train_loader))
@@ -139,7 +139,6 @@ def main():
     saliency, noise_level = compute_smooth_grad(model, img, target)
     integrated_gradients = compute_integrated_gradients(model, img, target)
     print('noise_level', noise_level)
-    print(saliency)
     plot_saliency_map(img, saliency, integrated_gradients)
 
 if __name__ == '__main__':
