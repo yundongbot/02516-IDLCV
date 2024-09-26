@@ -61,6 +61,45 @@ def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.1):
 
     return saliency, noise_level
 
+def generate_baseline_images(image, baseline, num_samples=50):
+    """Generate baseline images
+
+    Args:
+        image (torch.Tensor): Image to be smoothed
+        num_samples (int): Number of baseline images to generate
+    """
+    images = []
+    factor = np.linspace(0, 1, num_samples+1)
+    for a in factor:
+      img = baseline * a * (image - baseline)
+      images.append(img)
+    return torch.cat(images, dim=0)
+
+def compute_integrated_gradients(model, image, target, baseline = None, num_samples=50, sigma=0.1):
+    """Compute the integrated gradients of the image
+
+    Args:
+        model (torch.nn.Module): Model to be used
+        image (torch.Tensor): Image to be smoothed
+        target (torch.Tensor): Target of the image
+        num_samples (int): Number of smoothed images to generate
+        sigma (float): Standard deviation of the noise
+    """
+    if baseline is None:
+        baseline = torch.zeros_like(image)
+    imgs = generate_baseline_images(image, baseline, num_samples)
+    model.eval()
+    imgs.requires_grad = True
+
+    outputs = model(imgs)
+    loss = outputs[0, target]
+    model.zero_grad()
+    loss.backward()
+
+    avg_grads = imgs.grad.data.mean(dim=0, keepdim=True)
+    integrated_grads = (image - baseline) * avg_grads
+    return integrated_grads
+
 def plot_saliency_map(img, saliency, path = None):
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)

@@ -17,6 +17,6 @@ training:
 
 # Data settings
 data:
-  image_size: 32
+  image_size: 64
   augment: true
   validation_split: 0
