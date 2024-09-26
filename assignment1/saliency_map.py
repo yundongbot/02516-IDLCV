@@ -95,7 +95,7 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
     model.zero_grad()
     loss.backward()
 
-    avg_grads = imgs.grad.data.mean(dim=0, keepdim=True)
+    integrated_grads = imgs.grad.data.mean(dim=0, keepdim=True)
     integrated_grads = (image - baseline) * avg_grads
     integrated_grads = integrated_grads.squeeze().detach().cpu().numpy()
 
@@ -107,15 +107,19 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
 
     return integrated_grads
 
-def plot_saliency_map(img, saliency, path = None):
-    plt.figure(figsize=(10, 5))
-    plt.subplot(1, 2, 1)
+def plot_saliency_map(img, smooth_grad, integrated_gradients,path = None):
+    plt.figure(figsize=(14, 5))
+    plt.subplot(1, 3, 1)
     plt.imshow(img.squeeze().permute(1, 2, 0))
     plt.title('Original Image')
     plt.axis('off')
-    plt.subplot(1, 2, 2)
-    plt.imshow(saliency, cmap=plt.cm.gray)
-    plt.title('Saliency Map')
+    plt.subplot(1, 3, 2)
+    plt.imshow(smooth_grad, cmap=plt.cm.gray)
+    plt.title('Smooth Grad')
+    plt.axis('off')
+    plt.subplot(1, 3, 3)
+    plt.imshow(integrated_gradients, cmap=plt.cm.gray)
+    plt.title('Integrated Gradients')
     plt.axis('off')
     if path is None:
         plt.show()
@@ -132,11 +136,11 @@ def main():
 
     img = images[0].unsqueeze(0)
     target = labels[0].unsqueeze(0)
-
-    saliency = compute_integrated_gradients(model, img, target)
-    # print('noise_level', noise_level)
+    saliency, noise_level = compute_smooth_grad(model, img, target)
+    integrated_gradients = compute_integrated_gradients(model, img, target)
+    print('noise_level', noise_level)
     print(saliency)
-    plot_saliency_map(img, saliency)
+    plot_saliency_map(img, saliency, integrated_gradients)
 
 if __name__ == '__main__':
     mp.freeze_support()  # This is necessary for Windows compatibility

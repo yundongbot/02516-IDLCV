@@ -4,7 +4,7 @@ import os
 from experiment import Experiment
 from data_loader import HotdogDataLoader
 import yaml
-from saliency_map import compute_smooth_grad, plot_saliency_map
+from saliency_map import compute_smooth_grad, plot_saliency_map, compute_integrated_gradients
 
 def load_config(config_path='assignment1/confog.yaml'):
     config_path = os.path.normpath(config_path)
@@ -63,6 +63,7 @@ if __name__ == "__main__":
   img, label = next(iter(train_loader))
   img = img[0].unsqueeze(0)
   label = label[0].unsqueeze(0)
-  saliency, noise_level = compute_smooth_grad(exp.model, img, label, num_samples=50, sigma=0.1)
+  saliency, noise_level = compute_smooth_grad(model, img.to(device), label.to(device), num_samples=50, sigma=0.1)
+  integrated_gradients = compute_integrated_gradients(model, img.to(device), label.to(device))
   print('noise_level', noise_level)
-  plot_saliency_map(img, saliency, exp.solve_path('results', 'saliency.png'))
+  plot_saliency_map(img, saliency, integrated_gradients, exp.solve_path('results', 'saliency.png'))
