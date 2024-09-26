@@ -4,7 +4,7 @@ import os
 from experiment import Experiment
 from data_loader import HotdogDataLoader
 import yaml
-from saliency import compute_smooth_grad, plot_saliency_map
+from saliency_map import compute_smooth_grad, plot_saliency_map
 
 def load_config(config_path='assignment1/confog.yaml'):
     config_path = os.path.normpath(config_path)
