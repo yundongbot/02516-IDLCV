@@ -39,7 +39,7 @@ def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.1):
         torch.Tensor: Smoothed images
     """
     imgs = generate_smoothed_image(image, num_samples, sigma)
-
+    model.eval()
     # track differentiation
     imgs.requires_grad = True
     outputs = model(imgs)

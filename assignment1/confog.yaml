@@ -12,7 +12,7 @@ optimizer:
 
 # Training settings
 training:
-  epochs: 2
+  epochs: 100
   batch_size: 64
 
 # Data settings
