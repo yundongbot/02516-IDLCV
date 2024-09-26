@@ -24,7 +24,7 @@ class Experiment:
     Returns:
         dict: Results of the experiment
     """
-    train_loader, val_loader, test_loader, trainset, valset, testset = data_loader.data_for_exp(self.batch_size, 0)
+    train_loader, val_loader, test_loader, trainset, valset, testset = data_loader.data_for_exp()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = self.model
     optimizer = self.optimizer

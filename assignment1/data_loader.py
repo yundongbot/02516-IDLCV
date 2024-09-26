@@ -37,14 +37,20 @@ class Hotdog_NotHotdog(torch.utils.data.Dataset):
     return X, y
 
 class Hotdog_DataLoader:
-  def __init__(self, img_size = 32, augment=False):
+  def __init__(self, img_size = 32, augment=False, batch_size=64, validation_split=0.2):
+    self.batch_size = batch_size
+    self.validation_split = validation_split
     if augment:
-      self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
-                                      transforms.RandomRotation(20, expand=False),
-                                      transforms.RandomHorizontalFlip(p=0.2),
-                                      transforms.RandomVerticalFlip(p=0.2),
-                                      transforms.CenterCrop(img_size),
-                                      transforms.ToTensor()])
+      self.train_transform = transforms.Compose([
+                                    transforms.Resize((img_size + 8, img_size + 8)),
+                                    transforms.RandomCrop((img_size, img_size)),
+                                    transforms.RandomHorizontalFlip(p=0.3),
+                                    transforms.RandomRotation(degrees=5),
+                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
+                                    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+                                    transforms.RandomGrayscale(p=0.1),
+                                    transforms.ToTensor()
+                             ])
     else:
       self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
                                       transforms.ToTensor()])
@@ -52,16 +58,14 @@ class Hotdog_DataLoader:
     self.test_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
                                       transforms.ToTensor()])
 
-  def data_for_exp(self, batch_size = 64, val_split=0.2):
+  def data_for_exp(self):
     """Gemerate data for experiment
-
-    Args:
-        batch_size (int, optional): set batch size. Defaults to 64.
-        val_split (float, optional): set validation split. Defaults to 0.2.
 
     Returns:
         train_loader, val_loader, test_loader, trainset, valset, testset
     """
+    batch_size = self.batch_size
+    val_split = self.validation_split
 
     full_trainset = Hotdog_NotHotdog(train=True, transform=self.train_transform)
 
@@ -80,9 +84,10 @@ class Hotdog_DataLoader:
 
 if __name__ == "__main__":
   print(f"Data in progress")
-  dl = Hotdog_DataLoader(32)
+  dl = Hotdog_DataLoader(32, True, 64, 0.2)
   train_loader, val_loader, test_loader, trainset, valset, testset = dl.data_for_exp()
   images, labels = next(iter(train_loader))
+
   plt.figure(figsize=(20,10))
 
   for i in range(21):
