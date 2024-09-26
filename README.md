@@ -19,6 +19,18 @@ wget https://huggingface.co/datasets/yununuy/hotdot_nohotdog/resolve/main/hotdog
 unzip hotdog_nothotdog.zip -d ./assignment1
 ```
 
+Run the code with:
+
+```
+python assignment1/__init__.py
+```
+
+You can change the experiment arguements by commandline:
+
+```
+python assignment1/__init__.py --model VGG16 --optimizer Adam --lr 1e-3 --epochs 100 --batch_size 64
+```
+
 ### Run on the HPC:
 
 Clone code to your hpc instance:
@@ -59,12 +71,4 @@ You can check the progress by:
 
 ```
 bjobs
-```
-
-# Assignment 1
-
-Run the code with:
-
-```
-python assignment1/__init__.py
 ```
