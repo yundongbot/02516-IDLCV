@@ -38,6 +38,11 @@ if __name__ == "__main__":
   else:
       raise ValueError(f"Unsupported optimizer: {args.optimizer}")
 
+  print("Experiment Arguments:")
+  for arg, value in vars(args).items():
+    print(f"  {arg}: {value}")
+  print()  # Add an empty line for better readability
+
   exp = Experiment(model, optimizer, num_epochs=args.epochs, batch_size=args.batch_size)
   # for debug
   # exp = Experiment(model, optimizer, num_epochs=1)
