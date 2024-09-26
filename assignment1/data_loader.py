@@ -49,7 +49,8 @@ class Hotdog_DataLoader:
                                     transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
                                     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
                                     transforms.RandomGrayscale(p=0.1),
-                                    transforms.ToTensor()
+                                    transforms.ToTensor(),
+                                    transforms.Normalize(mean=[0.522, 0.441, 0.358], std=[0.206, 0.209, 0.214])
                              ])
     else:
       self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
@@ -96,3 +97,24 @@ if __name__ == "__main__":
       plt.title(['hotdog', 'not hotdog'][labels[i].item()])
       plt.axis('off')
   plt.show()
+
+  dl2 = Hotdog_DataLoader(32, False, 64, 0.2)
+  train_loader, _, _, _, _, _ = dl2.data_for_exp()
+  mean = 0.0
+  std = 0.0
+  nb_samples = 0.0
+  for data, _ in train_loader:
+      batch_samples = data.size(0)
+      data = data.view(batch_samples, data.size(1), -1)
+      mean += data.mean(2).sum(0)
+      std += data.std(2).sum(0)
+      nb_samples += batch_samples
+
+  mean /= nb_samples
+  std /= nb_samples
+
+  computed_mean = mean.tolist()
+  computed_std = std.tolist()
+
+  print(f'mean: {computed_mean}')
+  print(f'std: {computed_std}')
