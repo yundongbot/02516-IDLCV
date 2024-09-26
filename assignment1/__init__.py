@@ -2,7 +2,7 @@ import torch
 import models
 import os
 from experiment import Experiment
-from data_loader import Hotdog_DataLoader
+from data_loader import HotdogDataLoader
 import yaml
 
 def load_config(config_path='assignment1/confog.yaml'):
@@ -52,12 +52,13 @@ if __name__ == "__main__":
                    batch_size=batch_size)
   # for debug
   # exp = Experiment(model, optimizer, num_epochs=1)
-  dl = Hotdog_DataLoader(int(data_config['image_size']),
+  dl = HotdogDataLoader(int(data_config['image_size']),
                          bool(data_config['augment']),
                          batch_size,
                          float(data_config['validation_split']))
   exp.run(dl)
+  train_loader,_,_,_,_,_ = dl.data_for_exp()
+  img, label = next(iter(train_loader))
+  saliency, noise_level = exp.smooth_grad(img, label, num_samples=50, sigma=0.1)
+  exp.plot_smooth_grad(img, saliency)
 
-  model_save_path = os.path.join('results', f"{model_config['name']}_model.pth")
-  torch.save(model.state_dict(), model_save_path)
-  print(f"Model saved to {model_save_path}")

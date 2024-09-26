@@ -36,7 +36,7 @@ class Hotdog_NotHotdog(torch.utils.data.Dataset):
     X = self.transform(image)
     return X, y
 
-class Hotdog_DataLoader:
+class HotdogDataLoader:
   def __init__(self, img_size = 32, augment=False, batch_size=64, validation_split=0.2):
     self.batch_size = batch_size
     self.validation_split = validation_split
@@ -82,7 +82,7 @@ class Hotdog_DataLoader:
 
 if __name__ == "__main__":
   print(f"Data in progress")
-  dl = Hotdog_DataLoader(32, True, 64, 0.2)
+  dl = HotdogDataLoader(32, True, 64, 0.2)
   train_loader, val_loader, test_loader, trainset, valset, testset = dl.data_for_exp()
   images, labels = next(iter(train_loader))
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
       plt.axis('off')
   plt.show()
 
-  dl2 = Hotdog_DataLoader(32, False, 64, 0.2)
+  dl2 = HotdogDataLoader(32, False, 64, 0.2)
   train_loader, _, _, _, _, _ = dl2.data_for_exp()
   mean = 0.0
   std = 0.0
