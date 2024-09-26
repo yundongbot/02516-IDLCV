@@ -35,15 +35,4 @@ pip install -r $current_dir/requirements.txt
 # wget https://huggingface.co/datasets/yununuy/hotdot_nohotdog/resolve/main/hotdog_nothotdog.zip
 # unzip hotdog_nothotdog.zip -d ./assignment1
 
-echo $1
-echo $2
-echo $3
-echo $4
-echo $5
-
-python3 ./assignment1/__init__.py \
-$(if [ -n "$1" ]; then echo "--model $1"; fi) \
-$(if [ -n "$2" ]; then echo "--optimizer $2"; fi) \
-$(if [ -n "$3" ]; then echo "--lr $3"; fi) \
-$(if [ -n "$4" ]; then echo "--epochs $4"; fi) \
-$(if [ -n "$5" ]; then echo "--batch_size $5"; fi)
+python3 ./assignment1/__init__.py

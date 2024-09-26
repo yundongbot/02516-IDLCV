@@ -25,11 +25,7 @@ Run the code with:
 python assignment1/__init__.py
 ```
 
-You can change the experiment arguements by commandline:
-
-```
-python assignment1/__init__.py --model VGG16 --optimizer Adam --lr 1e-3 --epochs 100 --batch_size 64
-```
+You can change the experiment arguements in `assignment1/config.yaml`
 
 ### Run on the HPC:
 
@@ -53,19 +49,7 @@ Then submit the job:
 bsub < ./scripts/assignment1.sub
 ```
 
-You can change the experiment arguements by commandline:
-
-```
-bsub < ./scripts/assignment1.sub Resnet18 SGD 0.0002 100 128
-```
-
-```
-parser.add_argument('--model', type=str, default='VGG16', help='Model name (e.g., VGG16, Resnet18)')
-parser.add_argument('--optimizer', type=str, default='Adam', help='Optimizer name (default: Adam)')
-parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate (default: 1e-3)')
-parser.add_argument('--epochs', type=int, default=100, help='Number of epochs (default: 100)')
-parser.add_argument('--batch_size', type=int, default=64, help='Batch size (default: 64)')
-```
+You can change the experiment arguements in `assignment1/config.yaml`
 
 You can check the progress by:
 
