@@ -32,8 +32,8 @@ echo $pwd
 current_dir=$(pwd)
 pip install -r $current_dir/requirements.txt
 
-wget https://huggingface.co/datasets/yununuy/hotdot_nohotdog/resolve/main/hotdog_nothotdog.zip
-unzip hotdog_nothotdog.zip -d ./assignment1
+# wget https://huggingface.co/datasets/yununuy/hotdot_nohotdog/resolve/main/hotdog_nothotdog.zip
+# unzip hotdog_nothotdog.zip -d ./assignment1
 
 echo $1
 echo $2
