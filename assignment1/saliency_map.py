@@ -96,7 +96,7 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
     loss.backward()
 
     integrated_grads = imgs.grad.data.mean(dim=0, keepdim=True)
-    integrated_grads = (image - baseline) * avg_grads
+    integrated_grads = (image - baseline) * integrated_grads
     integrated_grads = integrated_grads.squeeze().detach().cpu().numpy()
 
     if integrated_grads.ndim == 3:
