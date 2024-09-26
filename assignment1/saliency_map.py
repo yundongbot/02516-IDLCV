@@ -75,7 +75,7 @@ def generate_baseline_images(image, baseline, num_samples=50):
       images.append(img)
     return torch.cat(images, dim=0)
 
-def compute_integrated_gradients(model, image, target, baseline = None, num_samples=50, sigma=0.1):
+def compute_integrated_gradients(model, image, target, baseline = None, num_samples=50):
     """Compute the integrated gradients of the image
 
     Args:
@@ -83,7 +83,6 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
         image (torch.Tensor): Image to be smoothed
         target (torch.Tensor): Target of the image
         num_samples (int): Number of smoothed images to generate
-        sigma (float): Standard deviation of the noise
     """
     if baseline is None:
         baseline = torch.zeros_like(image)
@@ -98,6 +97,14 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
 
     avg_grads = imgs.grad.data.mean(dim=0, keepdim=True)
     integrated_grads = (image - baseline) * avg_grads
+    integrated_grads = integrated_grads.squeeze().detach().cpu().numpy()
+
+    if integrated_grads.ndim == 3:
+        integrated_grads = np.mean(integrated_grads, axis=0)
+
+    # normalize saliency map
+    integrated_grads = (integrated_grads - integrated_grads.min()) / (integrated_grads.max() - integrated_grads.min())
+
     return integrated_grads
 
 def plot_saliency_map(img, saliency, path = None):
@@ -118,16 +125,17 @@ def plot_saliency_map(img, saliency, path = None):
 
 def main():
     model = VGG16(num_classes=2)
-    model.load_state_dict(torch.load('./assignment1/results/VGG16-2024-09-26_21-24-39-178.pth', map_location=torch.device('cpu')))
-    dl = HotdogDataLoader(32, False, 64, 0.2)
+    model.load_state_dict(torch.load('./assignment1/results/VGG16-2024-09-26_23-02-17-936.pth', map_location=torch.device('cpu')))
+    dl = HotdogDataLoader(64, False, 64, 0.2)
     train_loader, _, _, _, _, _ = dl.data_for_exp()
     images, labels = next(iter(train_loader))
 
     img = images[0].unsqueeze(0)
     target = labels[0].unsqueeze(0)
 
-    saliency, noise_level = compute_smooth_grad(model, img, target, sigma=0.2)
-    print('noise_level', noise_level)
+    saliency = compute_integrated_gradients(model, img, target)
+    # print('noise_level', noise_level)
+    print(saliency)
     plot_saliency_map(img, saliency)
 
 if __name__ == '__main__':
