@@ -6,7 +6,7 @@ from experiment import Experiment
 from data_loader import Hotdog_DataLoader
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-dl = Hotdog_DataLoader(32)
+dl = Hotdog_DataLoader(32, True)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Experiment configuration')

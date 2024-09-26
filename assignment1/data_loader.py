@@ -37,9 +37,18 @@ class Hotdog_NotHotdog(torch.utils.data.Dataset):
     return X, y
 
 class Hotdog_DataLoader:
-  def __init__(self, img_size = 32):
-    self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
+  def __init__(self, img_size = 32, augment=False):
+    if augment:
+      self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
+                                      transforms.RandomRotation(20, expand=False),
+                                      transforms.RandomHorizontalFlip(p=0.2),
+                                      transforms.RandomVerticalFlip(p=0.2),
+                                      transforms.CenterCrop(img_size),
                                       transforms.ToTensor()])
+    else:
+      self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
+                                      transforms.ToTensor()])
+
     self.test_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
                                       transforms.ToTensor()])
 
@@ -53,6 +62,7 @@ class Hotdog_DataLoader:
     Returns:
         train_loader, val_loader, test_loader, trainset, valset, testset
     """
+
     full_trainset = Hotdog_NotHotdog(train=True, transform=self.train_transform)
 
     val_size = int(len(full_trainset) * val_split)
