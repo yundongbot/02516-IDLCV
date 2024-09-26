@@ -37,7 +37,7 @@ class VGG16(nn.Module):
             nn.Flatten(),
 
             # Fully connected layers
-            nn.Linear(256*4*4, 256),
+            nn.Linear(256*8*8, 256),
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(256, 256),

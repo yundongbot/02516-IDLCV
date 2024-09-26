@@ -95,7 +95,7 @@ class Experiment:
     file = f'{data_dir}/{self.model.__class__.__name__}{datetime.now().strftime("-%Y-%m-%d_%H-%M-%S-")}{random.randint(0, 1000)}.{file_type}'
     return file
 
-  def to_pic(self, results, path = 'resluts'):
+  def to_pic(self, results, path = 'results'):
     """Save the results to a plot
 
     Args:
@@ -109,7 +109,7 @@ class Experiment:
     plt.legend()
     plt.savefig(self.solve_path(path, 'png'))
 
-  def to_csv(self, results, path = 'resluts'):
+  def to_csv(self, results, path = 'results'):
     """Save the results to a csv file
 
     Args:

@@ -44,13 +44,10 @@ class Hotdog_DataLoader:
       self.train_transform = transforms.Compose([
                                     transforms.Resize((img_size + 8, img_size + 8)),
                                     transforms.RandomCrop((img_size, img_size)),
-                                    transforms.RandomHorizontalFlip(p=0.3),
-                                    transforms.RandomRotation(degrees=5),
-                                    transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
-                                    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-                                    transforms.RandomGrayscale(p=0.1),
-                                    transforms.ToTensor(),
-                                    transforms.Normalize(mean=[0.522, 0.441, 0.358], std=[0.206, 0.209, 0.214])
+                                    transforms.RandomRotation(15, expand=False),
+                                    transforms.RandomHorizontalFlip(p=0.5),
+                                    transforms.CenterCrop(img_size),
+                                    transforms.ToTensor()
                              ])
     else:
       self.train_transform = transforms.Compose([transforms.Resize((img_size, img_size)),
