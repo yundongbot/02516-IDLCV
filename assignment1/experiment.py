@@ -14,6 +14,7 @@ class Experiment:
     self.optimizer = optimizer
     self.num_epochs = num_epochs
     self.batch_size = batch_size
+    self.id = f'{self.model.__class__.__name__}{datetime.now().strftime("-%Y-%m-%d_%H-%M-%S-")}{random.randint(0, 1000)}'
 
   def run(self, data_loader):
     """Run an experiment and then save the results to a csv file and a plot
@@ -77,6 +78,9 @@ class Experiment:
       print(f"Loss train: {np.mean(train_loss):.3f}\t test: {np.mean(test_loss):.3f}\t",
             f"Accuracy train: {out_dict['train_acc'][-1]*100:.1f}%\t test: {out_dict['test_acc'][-1]*100:.1f}%")
     self.to_csv(out_dict)
+    self.to_pic(out_dict)
+    self.save_model(model)
+
     return out_dict
 
   def solve_path(self, path, file_type):
@@ -92,30 +96,48 @@ class Experiment:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(script_dir, path)
     os.makedirs(data_dir, exist_ok=True)
-    file = f'{data_dir}/{self.model.__class__.__name__}{datetime.now().strftime("-%Y-%m-%d_%H-%M-%S-")}{random.randint(0, 1000)}.{file_type}'
+    file = f'{data_dir}/{self.id}.{file_type}'
     return file
 
-  def to_pic(self, results, path = 'results'):
+  def save_model(self, model):
+    file = self.solve_path('results', 'pth')
+    torch.save(model.state_dict(), file)
+
+  def to_pic(self, results):
     """Save the results to a plot
 
     Args:
         results (dict): Results of the experiment
         path (str): Path to save the results
     """
-    plt.plot(results['train_loss'], label='train_loss')
-    plt.plot(results['test_loss'], label='test_loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.savefig(self.solve_path(path, 'png'))
+    epochs = range(1, len(results['train_acc']) + 1)
 
-  def to_csv(self, results, path = 'results'):
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, results['train_acc'], label='Train Accuracy')
+    plt.plot(epochs, results['test_acc'], label='Test Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Training and Testing Accuracy')
+    plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, results['train_loss'], label='Train Loss')
+    plt.plot(epochs, results['test_loss'], label='Test Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Testing Loss')
+    plt.legend()
+    plt.tight_layout()
+    file = self.solve_path('results', 'png')
+    plt.savefig(file)
+    plt.close()
+
+  def to_csv(self, results):
     """Save the results to a csv file
 
     Args:
         results (dict): Results of the experiment
-        path (str): Path to save the results
     """
     df = pd.DataFrame(results)
-    file = self.solve_path(path, 'csv')
+    file = self.solve_path('results', 'csv')
     df.to_csv(file, index=False)

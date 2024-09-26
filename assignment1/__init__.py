@@ -1,11 +1,11 @@
 import torch
 import models
+import os
 from experiment import Experiment
 from data_loader import Hotdog_DataLoader
 import yaml
 
 def load_config(config_path='assignment1/confog.yaml'):
-    import os
     config_path = os.path.normpath(config_path)
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
@@ -57,3 +57,7 @@ if __name__ == "__main__":
                          batch_size,
                          float(data_config['validation_split']))
   exp.run(dl)
+
+  model_save_path = os.path.join('results', f"{model_config['name']}_model.pth")
+  torch.save(model.state_dict(), model_save_path)
+  print(f"Model saved to {model_save_path}")
