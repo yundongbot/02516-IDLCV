@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import os
 import torch
 import numpy as np
 from data_loader import HotdogDataLoader
@@ -24,7 +25,7 @@ def generate_smoothed_image(image, num_samples, sigma):
       images.append(noisy_image)
   return torch.cat(images, dim=0)
 
-def compute_smooth_grad_batch(model, image, target, num_samples=50, sigma=0.1):
+def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.1):
     """Compute the smooth gradient of the image
 
     Args:
@@ -53,23 +54,14 @@ def compute_smooth_grad_batch(model, image, target, num_samples=50, sigma=0.1):
     if saliency.shape[0] == 3:
         saliency = np.sum(saliency, axis=0)
 
+    noise_level = sigma / (imgs.max() - imgs.min())
+
     # normalize saliency map
     saliency = (saliency - saliency.min()) / (saliency.max() - saliency.min())
 
-    return saliency
+    return saliency, noise_level
 
-def main():
-    model = VGG16(num_classes=2)
-    model.load_state_dict(torch.load('./assignment1/results/VGG16-2024-09-26_21-24-39-178.pth', map_location=torch.device('cpu')))
-    dl = HotdogDataLoader(32, False, 64, 0.2)
-    train_loader, val_loader, test_loader, trainset, valset, testset = dl.data_for_exp()
-    images, labels = next(iter(train_loader))
-
-    img = images[0].unsqueeze(0)
-    target = labels[0].unsqueeze(0)
-
-    saliency = compute_smooth_grad_batch(model, img, target, sigma=0.2)
-    print(saliency.shape)
+def plot_saliency_map(img, saliency, path = None):
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
     plt.imshow(img.squeeze().permute(1, 2, 0))
@@ -79,7 +71,25 @@ def main():
     plt.imshow(saliency, cmap=plt.cm.gray)
     plt.title('Saliency Map')
     plt.axis('off')
-    plt.show()
+    if path is None:
+        plt.show()
+    else:
+        plt.savefig(path)
+        plt.close()
+
+def main():
+    model = VGG16(num_classes=2)
+    model.load_state_dict(torch.load('./assignment1/results/VGG16-2024-09-26_21-24-39-178.pth', map_location=torch.device('cpu')))
+    dl = HotdogDataLoader(32, False, 64, 0.2)
+    train_loader, _, _, _, _, _ = dl.data_for_exp()
+    images, labels = next(iter(train_loader))
+
+    img = images[0].unsqueeze(0)
+    target = labels[0].unsqueeze(0)
+
+    saliency, noise_level = compute_smooth_grad(model, img, target, sigma=0.2)
+    print('noise_level', noise_level)
+    plot_saliency_map(img, saliency)
 
 if __name__ == '__main__':
     mp.freeze_support()  # This is necessary for Windows compatibility

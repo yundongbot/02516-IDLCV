@@ -4,6 +4,7 @@ import os
 from experiment import Experiment
 from data_loader import HotdogDataLoader
 import yaml
+from saliency import compute_smooth_grad, plot_saliency_map
 
 def load_config(config_path='assignment1/confog.yaml'):
     config_path = os.path.normpath(config_path)
@@ -15,6 +16,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
   config = load_config()
+  # for debug
+  # config = load_config('assignment1/confog_debug.yaml')
 
   print("Experiment Arguments:")
   print(yaml.dump(config, default_flow_style=False))
@@ -50,8 +53,7 @@ if __name__ == "__main__":
                    optimizer,
                    num_epochs=int(training_config['epochs']),
                    batch_size=batch_size)
-  # for debug
-  # exp = Experiment(model, optimizer, num_epochs=1)
+
   dl = HotdogDataLoader(int(data_config['image_size']),
                          bool(data_config['augment']),
                          batch_size,
@@ -59,6 +61,8 @@ if __name__ == "__main__":
   exp.run(dl)
   train_loader,_,_,_,_,_ = dl.data_for_exp()
   img, label = next(iter(train_loader))
-  saliency, noise_level = exp.smooth_grad(img, label, num_samples=50, sigma=0.1)
-  exp.plot_smooth_grad(img, saliency)
-
+  img = img[0].unsqueeze(0)
+  label = label[0].unsqueeze(0)
+  saliency, noise_level = compute_smooth_grad(exp.model, img, label, num_samples=50, sigma=0.1)
+  print('noise_level', noise_level)
+  plot_saliency_map(img, saliency, exp.solve_path('results', 'saliency.png'))
