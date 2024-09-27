@@ -15,19 +15,19 @@
     augment: true
     validation_split: 0
 
-- model:
-    model: VGG16  # Options: VGG16, Resnet18
-    name: VGG16_32_Adam_1e-3_100_64
-    num_classes: 2
-  optimizer:
-    name: Adam  # Options: Adam, SGD
-    lr: 1e-3
-  training:
-    epochs: 100
-    batch_size: 64
-  data:
-    image_size: 32
-    augment: true
-    validation_split: 0
+# - model:
+#     model: VGG16  # Options: VGG16, Resnet18
+#     name: VGG16_32_Adam_1e-3_100_64
+#     num_classes: 2
+#   optimizer:
+#     name: Adam  # Options: Adam, SGD
+#     lr: 1e-3
+#   training:
+#     epochs: 100
+#     batch_size: 64
+#   data:
+#     image_size: 64
+#     augment: true
+#     validation_split: 0
 
 # Add more configurations as needed
