@@ -9,23 +9,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class Experiment:
-  def __init__(self, model, optimizer, num_epochs=100, batch_size=64):
+  def __init__(self, model, optimizer, dataloader, num_epochs=100, batch_size=64,):
     self.model = model
     self.optimizer = optimizer
     self.num_epochs = num_epochs
     self.batch_size = batch_size
+    self.dataloader = dataloader
+    self.dataset = self.dataloader.data_for_exp()
     self.id = f'{self.model.name}{datetime.now().strftime("-%m%d%H%M%S")}{random.randint(0, 1000)}'
 
-  def run(self, data_loader):
+  def run(self):
     """Run an experiment and then save the results to a csv file and a plot
-
-    Args:
-        data_loader (Hotdog_DataLoader): Data loader
 
     Returns:
         dict: Results of the experiment
     """
-    train_loader, val_loader, test_loader, trainset, valset, testset = data_loader.data_for_exp()
+    train_loader, val_loader, test_loader, trainset, valset, testset = self.dataset
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = self.model
     optimizer = self.optimizer

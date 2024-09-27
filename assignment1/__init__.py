@@ -15,9 +15,9 @@ def load_config(config_path='assignment1/confog.yaml'):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
-  exps_config = load_config()
+  # exps_config = load_config()
   # # for debug
-  # config = load_config('assignment1/confog_debug.yaml')
+  exps_config = load_config('assignment1/confog_debug.yaml')
   for config in exps_config:
     print("Experiment Arguments:")
     print(yaml.dump(config, default_flow_style=False))
@@ -50,23 +50,24 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer_config['name']}")
 
-    exp = Experiment(model,
-                    optimizer,
-                    num_epochs=int(training_config['epochs']),
-                    batch_size=batch_size)
-
     dl = HotdogDataLoader(int(data_config['image_size']),
                           bool(data_config['augment']),
                           batch_size,
                           float(data_config['validation_split']))
 
+    exp = Experiment(model = model,
+                    optimizer = optimizer,
+                    num_epochs=int(training_config['epochs']),
+                    batch_size=batch_size,
+                    dataloader=dl)
+
     print('Experiment start:', exp.id)
-    exp.run(dl)
-    train_loader,_,_,_,_,_ = dl.data_for_exp()
+    exp.run()
+    train_loader,_,_,_,_,_ = exp.dataset
     img, label = next(iter(train_loader))
-    img = img[0].unsqueeze(0)
-    label = label[0].unsqueeze(0)
-    saliency, noise_level = compute_smooth_grad(model, img.to(device), label.to(device), num_samples=50, sigma=0.1)
-    integrated_gradients = compute_integrated_gradients(model, img.to(device), label.to(device))
+    img = img[0]
+    label = label[0]
+    saliency, noise_level = compute_smooth_grad(model, img.clone().detach().to(device), label.to(device), num_samples=50, sigma=0.1)
+    integrated_gradients = compute_integrated_gradients(model, img.clone().detach().to(device), label.to(device))
     print('noise_level', noise_level)
     plot_saliency_map(img, saliency, integrated_gradients, exp.solve_path('results', 'saliency.png'))
