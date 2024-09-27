@@ -171,6 +171,7 @@ def compute_grad_cam(model, image, target):
     activations = {}
 
     image.requires_grad = True
+    model.eval()
     def forward_hook(module, input, output):
         activations['value'] = output
     last_conv_layer.register_forward_hook(forward_hook)
