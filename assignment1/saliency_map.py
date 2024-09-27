@@ -1,14 +1,10 @@
 from matplotlib import pyplot as plt
-import os
 import torch
-import torch.nn.functional as F
 import numpy as np
 from data_loader import HotdogDataLoader
 import torch.multiprocessing as mp
 from models import VGG16
 import torch.nn as nn
-import cv2
-from PIL import Image
 
 def normalize(saliency: torch.Tensor):
     return (saliency - saliency.min()) / (saliency.max() - saliency.min() + 1e-8)
@@ -162,45 +158,30 @@ def compute_grad_cam(model, image, target):
     image = image.unsqueeze(0)
     last_conv_layer, _ = get_last_conv_layer(model)
 
-    # get the feature map of the last convolutional layer
-    last_conv_feature = None
+    gradients = {}
+    activations = {}
 
-    def last_conv_feature_hook(module, input, output):
-        nonlocal last_conv_feature
-        last_conv_feature = output
-    last_conv_layer.register_forward_hook(last_conv_feature_hook)
+    def forward_hook(module, input, output):
+        activations['value'] = output
+        output.register_hook(lambda grad: gradients.update({'value': grad}))
 
-    # get the gradient of the last convolutional layer
-    last_conv_grad = None
-    def last_conv_grad_hook(module, grad_input, grad_output):
-        nonlocal last_conv_grad
-        last_conv_grad = grad_output[0]
-    last_conv_layer.register_full_backward_hook(last_conv_grad_hook)
+    last_conv_layer.register_forward_hook(forward_hook)
 
-    print(image.shape) # torch.Size([1, 3, 64, 64])
-    print(target.shape) # torch.Size([])
-    image.requires_grad = True
-    model.eval()
-    outputs = model(image)
-    loss = outputs[0, target]
-    print('outputs',outputs.shape) # torch.Size([1, 2])
-    print('loss',loss.shape) # loss torch.Size([])
+    output = model(image)
+    loss = output[0, target]
     model.zero_grad()
     loss.backward()
 
-    print(last_conv_feature.shape) # torch.Size([1, C, H, W])
-    print('target.item()',target.item()) # torch.Size([1, C, H, W])
-    print('last_conv_grad[target.item()]',last_conv_grad[target.item()]) # torch.Size([1, C, H, W])
-    last_conv_feature = last_conv_feature.squeeze(0)
-    weights = last_conv_grad[0].mean(dim=[1, 2])
-    print(weights.shape) # torch.Size([1, C])
-    print(last_conv_feature.shape) # torch.Size([C, H, W])
-    weights = weights.view(-1, 1, 1)
-    print('weights',weights.shape) # torch.Size([ C, 1, 1])
-    grad_cam = (weights * last_conv_feature).sum(dim=0)
-    grad_cam = F.relu(grad_cam)
-    print(grad_cam.shape)
-    return normalize(grad_cam).detach().cpu().numpy()
+    grads = gradients['value']
+    fmap = activations['value']
+
+    weights = torch.mean(grads, dim=(2, 3), keepdim=True)
+
+    grad_cam = torch.sum(weights * fmap, dim=1)
+    grad_cam = torch.relu(grad_cam)
+    grad_cam = grad_cam.squeeze(0).detach().cpu().numpy()
+
+    return normalize(grad_cam)
 
 def plot_saliency_hot_map(img, grad_cam):
     plt.figure(figsize=(14, 5))
