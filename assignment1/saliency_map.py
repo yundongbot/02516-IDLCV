@@ -218,7 +218,7 @@ def plot_saliency_hot_map(img, grad_cam, path = None):
     plt.axis('off')
     plt.subplot(1, 2, 2)
     plt.imshow(overlay)
-    plt.title('Overlay')
+    plt.title('Grad Cam')
     plt.axis('off')
 
     if path is None:
