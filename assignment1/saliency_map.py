@@ -100,7 +100,7 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
     model.eval()
 
     outputs = model(imgs)
-    loss = outputs[:, target].sum()
+    loss = outputs[0, target]
     print('outputs',outputs.shape) # outputs torch.Size([51, 2])
     print('loss',loss.shape) # loss torch.Size([])
     model.zero_grad()
@@ -136,20 +136,24 @@ def plot_saliency_map(img, smooth_grad, integrated_gradients,path = None):
         plt.savefig(path)
         plt.close()
 
-def get_last_conv_layer(model) -> tuple[nn.Module, int]:
-    """Get the last convolutional layer of the model
+def get_conv_layer(model, n = 1) -> tuple[nn.Module, int]:
+    """Get the last n-th convolutional layer of the model
 
     Args:
         model (torch.nn.Module): Model to be used
+        n (int): The n-th convolutional layer to get
 
     Returns:
         torch.nn.Module: Last convolutional layer
         int: Index of the last convolutional layer
     """
     # iterate through all layers
+    count = 1
     for i in range(len(model.net) - 1, -1, -1):
       if isinstance(model.net[i], nn.Conv2d):
-        return model.net[i], i
+        if count == n:
+          return model.net[i], i
+        count += 1
     return None, None
 
 def compute_grad_cam(model, image, target):
@@ -161,7 +165,7 @@ def compute_grad_cam(model, image, target):
         target (torch.Tensor): Target of the image
     """
     image = image.unsqueeze(0)
-    last_conv_layer, _ = get_last_conv_layer(model)
+    last_conv_layer, _ = get_conv_layer(model, 1) # sometime the last 2 or 3 layer better
 
     gradients = {}
     activations = {}
@@ -176,7 +180,7 @@ def compute_grad_cam(model, image, target):
     last_conv_layer.register_full_backward_hook(backward_hook)
 
     output = model(image)
-    loss = output[0, target]
+    loss = output[:, target].sum()
     model.zero_grad()
     loss.backward()
 
