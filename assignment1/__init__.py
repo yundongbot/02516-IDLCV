@@ -17,7 +17,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if __name__ == "__main__":
   # exps_config = load_config()
   # # for debug
-  exps_config = load_config('assignment1/confog_debug.yaml')
+  exps_config = load_config('assignment1/confog.yaml')
   for config in exps_config:
     print("Experiment Arguments:")
     print(yaml.dump(config, default_flow_style=False))
