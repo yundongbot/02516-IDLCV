@@ -33,7 +33,7 @@ def generate_smoothed_image(image, num_samples, sigma):
       images.append(noisy_image)
   return torch.stack(images, dim=0)
 
-def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.1):
+def compute_smooth_grad(model, image, target, num_samples=50, sigma=0.8):
     """Compute the smooth gradient of the image
 
     Args:
@@ -156,7 +156,7 @@ def get_conv_layer(model, n = 1) -> tuple[nn.Module, int]:
         count += 1
     return None, None
 
-def compute_grad_cam(model, image, target):
+def compute_grad_cam(model, image, target, layer_idx = 1):
     """Compute the grad cam of the image
 
     Args:
@@ -165,7 +165,7 @@ def compute_grad_cam(model, image, target):
         target (torch.Tensor): Target of the image
     """
     image = image.unsqueeze(0)
-    last_conv_layer, _ = get_conv_layer(model, 1) # sometime the last 2 or 3 layer better
+    last_conv_layer, _ = get_conv_layer(model, layer_idx) # sometime the last 2 or 3 layer better
 
     gradients = {}
     activations = {}
@@ -174,28 +174,33 @@ def compute_grad_cam(model, image, target):
     model.eval()
     def forward_hook(module, input, output):
         activations['value'] = output
-    last_conv_layer.register_forward_hook(forward_hook)
+    forward_handle = last_conv_layer.register_forward_hook(forward_hook)
 
-    def backward_hook(module, input, output):
-        gradients['value'] = output[0]
-    last_conv_layer.register_full_backward_hook(backward_hook)
+    def backward_hook(module, grad_input, grad_output):
+        gradients['value'] = grad_output[0]
+    backward_handle = last_conv_layer.register_full_backward_hook(backward_hook)
 
     output = model(image)
-    loss = output[:, target].sum()
+    print('image--->>>', image.shape)
+    print('output--->>>', output)
+    loss = output[0, target]
     model.zero_grad()
     loss.backward()
 
     grads = gradients['value']
     fmap = activations['value']
 
+    forward_handle.remove()
+    backward_handle.remove()
+
     weights = torch.mean(grads, dim=(2, 3), keepdim=True)
     grad_cam = torch.sum(weights * fmap, dim=1)
-    grad_cam = torch.relu(grad_cam)
+    grad_cam = F.relu(grad_cam)
     grad_cam = grad_cam.squeeze(0).detach().cpu().numpy()
 
     return normalize(grad_cam)
 
-def plot_saliency_hot_map(img, grad_cam, path = None):
+def plot_saliency_hot_map(img, saliency, integrated_gradients, grad_cam, path = None):
     if img.dim() == 4:
         img = img.squeeze(0)
     image_np = img.detach().cpu().numpy()
@@ -203,26 +208,39 @@ def plot_saliency_hot_map(img, grad_cam, path = None):
     if image_np.max() > 1:
         image_np = image_np / 255.0
 
-    grad_cam_tensor = torch.from_numpy(grad_cam).unsqueeze(0).unsqueeze(0)  # [1, 1, H, W]
-    height, width = image_np.shape[:2]
-    grad_cam_resized = F.interpolate(grad_cam_tensor, size=(height, width), mode='bilinear', align_corners=False)
-    grad_cam_resized = grad_cam_resized.squeeze().detach().cpu().numpy()
+    def generate_heatmap(data):
+      data_tensor = torch.from_numpy(data).unsqueeze(0).unsqueeze(0)  # [1, 1, H, W]
+      height, width = image_np.shape[:2]
+      data_resized = F.interpolate(data_tensor, size=(height, width), mode='bilinear', align_corners=False)
+      data_resized = data_resized.squeeze().detach().cpu().numpy()
 
-    colormap = plt.get_cmap('jet')
-    heatmap = colormap(grad_cam_resized)[:, :, :3]
+      colormap = plt.get_cmap('jet')
+      heatmap = colormap(data_resized)[:, :, :3]
 
-    alpha = 0.5
-    overlay = heatmap * alpha + image_np * (1 - alpha)
-    overlay = np.clip(overlay, 0, 1)
+      alpha = 0.5
+      overlay = heatmap * alpha + image_np * (1 - alpha)
+      overlay = np.clip(overlay, 0, 1)
+      return overlay
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(5 * 4, 5))
 
-    plt.subplot(1, 2, 1)
+    plt.subplot(1, 4, 1)
     plt.imshow(image_np)
     plt.title('Original Image')
     plt.axis('off')
-    plt.subplot(1, 2, 2)
-    plt.imshow(overlay)
+
+    plt.subplot(1, 4, 2)
+    plt.imshow(generate_heatmap(saliency))
+    plt.title('Smooth Grad')
+    plt.axis('off')
+
+    plt.subplot(1, 4, 3)
+    plt.imshow(generate_heatmap(integrated_gradients))
+    plt.title('Integrated Gradients')
+    plt.axis('off')
+
+    plt.subplot(1, 4, 4)
+    plt.imshow(generate_heatmap(grad_cam))
     plt.title('Grad Cam')
     plt.axis('off')
 
@@ -235,11 +253,17 @@ def plot_saliency_hot_map(img, grad_cam, path = None):
 def main():
     model = VGG16(num_classes=2)
     model.load_state_dict(torch.load('./assignment1/results/model.pth', map_location=torch.device('cpu')))
-    dl = HotdogDataLoader(64, False, 64, 0.2)
-    train_loader, _, _, _, _, _ = dl.data_for_exp()
+    # dl = HotdogDataLoader(64, False, 64, 0.2)
+    # train_loader, _, _, _, _, _ = dl.data_for_exp()
+    # t_img, t_label = next(iter(train_loader))
+    # print(t_img[0].shape)
+    # print(t_label[0].item())
+    # print(t_label[0])
+    # plt.imshow(t_img[0].squeeze().permute(1, 2, 0))
+    # plt.show()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.join(script_dir, 'hotdog_nothotdog', 'train', 'hotdog', 'chilidog (1).jpg')
+    image_path = os.path.join(script_dir, 'hotdog_nothotdog', 'test', 'nothotdog', 'food (3).jpg')
     image = Image.open(image_path)
     transform = transforms.Compose([
         transforms.Resize((64, 64)),
@@ -249,14 +273,15 @@ def main():
         transforms.ToTensor()
     ])
     img = transform(image)
-    target = torch.tensor(0)
+    target = torch.tensor(1)
 
-    grad_cam = compute_grad_cam(model, img.clone().detach(), target)
+    grad_cam = compute_grad_cam(model, img.clone().detach(), target, 1)
     saliency, noise_level = compute_smooth_grad(model, img.clone().detach(), target)
     integrated_gradients = compute_integrated_gradients(model, img.clone().detach(), target)
     print('noise_level', noise_level)
-    plot_saliency_map(img, saliency, integrated_gradients)
-    plot_saliency_hot_map(transform2(image), grad_cam)
+    # plot_saliency_map(img, saliency, integrated_gradients)
+    # plot_saliency_hot_map(transform2(image), integrated_gradients)
+    plot_saliency_hot_map(transform2(image), saliency, integrated_gradients, grad_cam)
 
 if __name__ == '__main__':
     mp.freeze_support()  # This is necessary for Windows compatibility
