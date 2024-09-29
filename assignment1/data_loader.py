@@ -39,22 +39,22 @@ class Hotdog_NotHotdog(torch.utils.data.Dataset):
 
 
 
-class Shortcut:
-    def __init__(self, p: int, size=5, color=(255, 0, 0)):
-        self.p = p
-        self.size = size
-        self.color = color
+# class Shortcut:
+#     def __init__(self, p: int, size=5, color=(255, 0, 0), target_class=0):
+#         self.p = p
+#         self.size = size
+#         self.color = color
+#         self.target_class = target_class
 
-    def __call__(self, image):
-        if random.uniform(0, 1) > self.p:
-           return image
+#     def __call__(self, image, label):
+#         if label != self.target_class or random.uniform(0, 1) > self.p:
+#             return image
 
-        draw = ImageDraw.Draw(image)
-        # 计算高亮方块的区域（右上角）
-        width, height = image.size
-        draw.rectangle([width - self.size, 0, width, self.size], fill=self.color)
-        image = image.convert('RGB')
-        return image
+#         draw = ImageDraw.Draw(image)
+#         width, height = image.size
+#         draw.rectangle([width - self.size, 0, width, self.size], fill=self.color)
+#         image = image.convert('RGB')
+#         return image
 
 class HotdogDataLoader:
   def __init__(self, img_size = 32, augment=False, batch_size=64, validation_split=0.2):
@@ -67,7 +67,7 @@ class HotdogDataLoader:
                                     transforms.RandomRotation(15, expand=False),
                                     transforms.RandomHorizontalFlip(p=0.5),
                                     transforms.CenterCrop(img_size),
-                                    Shortcut(0.66),
+                                    # Shortcut(0.66),
                                     transforms.ToTensor()
                              ])
     else:
