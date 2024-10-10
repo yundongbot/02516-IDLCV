@@ -56,3 +56,12 @@ You can check the progress by:
 ```
 bjobs
 ```
+
+
+## interative node
+
+```
+a100sh
+export PATH=~/.local/bin:$PATH
+jupyter notebook --no-browser --port=2222 --ip=$HOSTNAME
+```
