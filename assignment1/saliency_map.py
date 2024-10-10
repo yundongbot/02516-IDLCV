@@ -101,13 +101,17 @@ def compute_integrated_gradients(model, image, target, baseline = None, num_samp
 
     outputs = model(imgs)
     loss = outputs[0, target]
+    print('loss',loss.shape) # loss torch.Size([])
+    loss = loss.sum()
     print('outputs',outputs.shape) # outputs torch.Size([51, 2])
     print('loss',loss.shape) # loss torch.Size([])
     model.zero_grad()
     loss.backward()
-
+    print('000', imgs.grad.data.shape)
     integrated_grads = imgs.grad.data.mean(dim=0, keepdim=True)
+    print('000', integrated_grads.shape)
     integrated_grads = (image - baseline) * integrated_grads
+    print('0003', integrated_grads.shape)
     integrated_grads = integrated_grads.abs().squeeze().detach().cpu().numpy()
 
     if integrated_grads.ndim == 3:
@@ -263,7 +267,7 @@ def main():
     # plt.show()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.join(script_dir, 'hotdog_nothotdog', 'test', 'nothotdog', 'food (3).jpg')
+    image_path = os.path.join(script_dir, 'hotdog_nothotdog', 'train', 'hotdog', 'chilidog (66).jpg')
     image = Image.open(image_path)
     transform = transforms.Compose([
         transforms.Resize((64, 64)),
@@ -275,7 +279,7 @@ def main():
     img = transform(image)
     target = torch.tensor(1)
 
-    grad_cam = compute_grad_cam(model, img.clone().detach(), target, 1)
+    grad_cam = compute_grad_cam(model, img.clone().detach(), target, 2)
     saliency, noise_level = compute_smooth_grad(model, img.clone().detach(), target)
     integrated_gradients = compute_integrated_gradients(model, img.clone().detach(), target)
     print('noise_level', noise_level)

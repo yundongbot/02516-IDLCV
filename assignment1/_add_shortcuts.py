@@ -2,8 +2,8 @@ import os
 from PIL import Image, ImageDraw
 import random
 
-data_path1 = ['hotdog_nothotdog/test/hotdog',
-             'hotdog_nothotdog/train/hotdog',]
+data_path1 = ['assignment1/hotdog_nothotdog/test/hotdog',
+             'assignment1/hotdog_nothotdog/train/hotdog',]
 
 
 
