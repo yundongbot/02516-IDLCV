@@ -1,11 +1,8 @@
 {
-	"folders": [
-		{
-			"path": "../.."
-		},
-		{
-			"path": "../../../../../../../../dtu/datasets1/02516/CMP_facade_DB_base"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": "../.."
+    }
+  ],
+  "settings": {}
 }
