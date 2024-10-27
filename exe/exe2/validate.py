@@ -14,30 +14,30 @@ def validate(y_pred, y_true):
     return dice, iou, sensitivity, specificity, precision
 
 def Dice(y_pred, y_true, smooth=1e-6):
-    intersection = np.sum(y_pred_flat * y_true_flat)
-    sum_pred = np.sum(y_pred_flat)
-    sum_true = np.sum(y_true_flat)
+    intersection = np.sum(y_pred * y_true)
+    sum_pred = np.sum(y_pred)
+    sum_true = np.sum(y_true)
     return (2. * intersection + smooth) / (sum_pred + sum_true + smooth)
 
 def IoU(y_pred, y_true, smooth=1e-6):
-    intersection = np.sum(y_pred_flat * y_true_flat)
-    union = np.sum(y_pred_flat) + np.sum(y_true_flat) - intersection
+    intersection = np.sum(y_pred * y_true)
+    union = np.sum(y_pred) + np.sum(y_true) - intersection
     return (intersection + smooth) / (union + smooth)
 
 def Sensitivity(y_pred, y_true, smooth=1e-6):
-    TP = np.sum(y_pred_flat * y_true_flat)
-    FN = np.sum(y_true_flat) - TP
+    TP = np.sum(y_pred * y_true)
+    FN = np.sum(y_true) - TP
     return (TP + smooth) / (TP + FN + smooth)
 
 def Specificity(y_pred, y_true, smooth=1e-6):
-    TP = np.sum(y_pred_flat * y_true_flat)
-    FP = np.sum(y_pred_flat) - TP
-    TN = np.sum((1 - y_pred_flat) * (1 - y_true_flat))
+    TP = np.sum(y_pred * y_true)
+    FP = np.sum(y_pred) - TP
+    TN = np.sum((1 - y_pred) * (1 - y_true))
     return (TN + smooth) / (TN + FP + smooth)
 
 def Precision(y_pred, y_true, smooth=1e-6):
-    TP = np.sum(y_pred_flat * y_true_flat)
-    FP = np.sum(y_pred_flat) - TP
-    TN = np.sum((1 - y_pred_flat) * (1 - y_true_flat))
-    FN = np.sum(y_true_flat) - TP
+    TP = np.sum(y_pred * y_true)
+    FP = np.sum(y_pred) - TP
+    TN = np.sum((1 - y_pred) * (1 - y_true))
+    FN = np.sum(y_true) - TP
     return (TP + smooth) / (TP + FP + smooth)
